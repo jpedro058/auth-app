@@ -1,8 +1,8 @@
-import { IoLogoGoogleplus } from "react-icons/io";
 import apiRequest from "../lib/apiRequest";
 import { useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function SignUp() {
   const [error, setError] = useState("");
@@ -58,20 +58,55 @@ export default function SignUp() {
     }
   };
 
+  const handleGoogleLoginSuccess = async (responseCred: CredentialResponse) => {
+    try {
+      const { credential } = responseCred; // Assuming response contains the credential
+
+      console.log("CREDENTIAL", credential);
+
+      const response = await apiRequest.post("/auth/google-login", {
+        credential, // Sending credential to the backend
+      });
+
+      const { user } = response.data;
+
+      updateUser(user);
+
+      navigate("/home"); // Navigate to home page after successful login
+    } catch (err) {
+      console.error(err);
+
+      let errorMessage = "An unknown error occurred.";
+
+      if (err instanceof Error) {
+        errorMessage = err.message; // Handle generic error (e.g., network issues)
+      } else if (
+        (err as { response: { data: { message: string } } }).response?.data
+          ?.message
+      ) {
+        errorMessage = (err as { response: { data: { message: string } } })
+          .response.data.message; // Handle API response error
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false); // Set loading state to false
+    }
+  };
+
   return (
     <div className="w-full flex flex-col justify-center items-center gap-4">
       <div className="flex flex-col justify-center items-center gap-4">
         <h1 className="text-5xl min-w-full text-center text-zinc-100 font-semibold pb-4">
           Create Account
         </h1>
-        <button
-          className="flex items-center px-[20px] gap-4 py-[10px] bg-slate-200  rounded-[10px] text-[#1d3f58] font-bold hover:bg-slate-400
-              transition-all duration-300 ease-out
-              "
-        >
-          <IoLogoGoogleplus className="w-[30px] h-[25px]" />
-          Login with Google
-        </button>
+
+        <GoogleLogin
+          onSuccess={handleGoogleLoginSuccess}
+          onError={() => {
+            console.log("Login Failed");
+          }}
+        />
       </div>
 
       <form

@@ -7,6 +7,8 @@ export const register = async (req, res) => {
   console.log("register request", req.body);
   const { username, email, password } = req.body;
 
+  console.log("register request");
+
   try {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please fill in all fields" });
@@ -24,7 +26,7 @@ export const register = async (req, res) => {
 
     res.status(201).json({ user, message: "User created successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ error: error, message: "Something went wrong" });
   }
 };
 
@@ -105,11 +107,15 @@ export const googleLogin = async (req, res) => {
 
     const { sub, email, name, picture } = payload;
 
-    console.log("payload", payload);
-
-    let user = await prisma.user.findUnique({
-      where: { email },
-    });
+    let user;
+    try {
+      user = await prisma.user.findUnique({
+        where: { email },
+      });
+    } catch (error) {
+      console.log("DATA BASE URL", process.env.DATABASE_URL);
+      console.log("error", error);
+    }
 
     if (!user) {
       user = await prisma.user.create({

@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-import { IoLogoGoogleplus } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import apiRequest from "../lib/apiRequest";
@@ -63,6 +62,8 @@ export default function Login() {
     try {
       const { credential } = responseCred; // Assuming response contains the credential
 
+      console.log("CREDENTIAL", credential);
+
       const response = await apiRequest.post("/auth/google-login", {
         credential, // Sending credential to the backend
       });
@@ -97,14 +98,6 @@ export default function Login() {
     <div className="w-[50%] flex flex-col justify-center items-center gap-4">
       <div className="flex flex-col justify-center items-center gap-4">
         <h1 className="text-5xl text-zinc-100 font-semibold pb-4">Sign In</h1>
-        <button
-          className="flex items-center px-[20px] gap-4 py-[10px] bg-slate-200  rounded-[10px] text-[#1d3f58] font-bold hover:bg-slate-400
-              transition-all duration-300 ease-out
-              "
-        >
-          <IoLogoGoogleplus className="w-[30px] h-[25px]" />
-          Login with Google
-        </button>
         <GoogleLogin
           onSuccess={handleGoogleLoginSuccess}
           onError={() => {
