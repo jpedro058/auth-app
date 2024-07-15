@@ -3,6 +3,7 @@ import { IoLogoGoogleplus } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import apiRequest from "../lib/apiRequest";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const [error, setError] = useState("");
@@ -58,6 +59,40 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLoginSuccess = async (responseCred: CredentialResponse) => {
+    try {
+      const { credential } = responseCred; // Assuming response contains the credential
+
+      const response = await apiRequest.post("/auth/google-login", {
+        credential, // Sending credential to the backend
+      });
+
+      const { user } = response.data;
+
+      updateUser(user);
+
+      navigate("/home"); // Navigate to home page after successful login
+    } catch (err) {
+      console.error(err);
+
+      let errorMessage = "An unknown error occurred.";
+
+      if (err instanceof Error) {
+        errorMessage = err.message; // Handle generic error (e.g., network issues)
+      } else if (
+        (err as { response: { data: { message: string } } }).response?.data
+          ?.message
+      ) {
+        errorMessage = (err as { response: { data: { message: string } } })
+          .response.data.message; // Handle API response error
+      }
+
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false); // Set loading state to false
+    }
+  };
+
   return (
     <div className="w-[50%] flex flex-col justify-center items-center gap-4">
       <div className="flex flex-col justify-center items-center gap-4">
@@ -70,7 +105,12 @@ export default function Login() {
           <IoLogoGoogleplus className="w-[30px] h-[25px]" />
           Login with Google
         </button>
-
+        <GoogleLogin
+          onSuccess={handleGoogleLoginSuccess}
+          onError={() => {
+            console.log("Login Failed");
+          }}
+        />
         <p className="text-zinc-300">or use the form below</p>
       </div>
 
