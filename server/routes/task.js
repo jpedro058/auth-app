@@ -15,6 +15,6 @@ router.get("/display/:type", authenticateToken, display);
 
 router.put("/edit/:id", edit);
 
-router.delete("/remove/:id", remove);
+router.delete("/remove/:id", authenticateToken, remove);
 
 export default router;

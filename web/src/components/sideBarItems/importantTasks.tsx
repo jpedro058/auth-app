@@ -4,23 +4,29 @@ import Task from "../task";
 import { BsPlusCircle } from "react-icons/bs";
 import AddTask from "../addTask";
 
-export default function ImportantTasks() {
+interface TaskProps {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+  complete: boolean;
+  important: boolean;
+  token: string;
+  userId: string;
+}
+
+export default function ImportantTasks({
+  token,
+  userId,
+}: {
+  token: string;
+  userId: string;
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tasks, setTasks] = useState({
-    tasks: [
-      {
-        id: "",
-        title: "",
-        content: "",
-        date: "",
-        complete: false,
-        important: false,
-      },
-    ],
-  });
+  const [updateTasks, setUpdateTasks] = useState(false);
+  const [tasks, setTasks] = useState({ tasks: [] as TaskProps[] });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const fetchTasks = async () => {
       const response = await apiRequest.get("/task/display/important", {
         headers: {
@@ -33,7 +39,7 @@ export default function ImportantTasks() {
     };
 
     fetchTasks();
-  }, []);
+  }, [updateTasks, isModalOpen, token]);
 
   function openModal() {
     setIsModalOpen(true);
@@ -65,6 +71,8 @@ export default function ImportantTasks() {
             date={task.date}
             complete={task.complete}
             important={task.important}
+            setUpdateTasks={setUpdateTasks}
+            userId={userId}
           />
         ))}
 
@@ -82,7 +90,11 @@ export default function ImportantTasks() {
         </div>
       </div>
 
-      <div>{isModalOpen && <AddTask setIsModalOpen={setIsModalOpen} />}</div>
+      <div>
+        {isModalOpen && (
+          <AddTask setIsModalOpen={setIsModalOpen} userId={userId} />
+        )}
+      </div>
     </div>
   );
 }

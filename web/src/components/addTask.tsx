@@ -4,25 +4,16 @@ import apiRequest from "../lib/apiRequest";
 
 interface AddTaskProps {
   setIsModalOpen: (value: boolean) => void;
+  userId: string;
 }
 
-export default function AddTask({ setIsModalOpen }: AddTaskProps) {
+export default function AddTask({ setIsModalOpen, userId }: AddTaskProps) {
   function closeModal() {
     setIsModalOpen(false);
   }
 
   async function handleAddTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    const userJson = localStorage.getItem("user");
-    let userId;
-
-    if (userJson) {
-      const user = JSON.parse(userJson);
-
-      // Step 3: Access the id property of the resulting object
-      userId = user.id;
-    }
 
     const data = new FormData(event.currentTarget);
 

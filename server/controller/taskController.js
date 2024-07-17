@@ -29,7 +29,7 @@ export const register = async (req, res) => {
         date,
         complete,
         important,
-        authorId: userId, // Associate the post with the user
+        authorId: userId,
       },
     });
 
@@ -101,5 +101,41 @@ export const edit = async (req, res) => {
 };
 
 export const remove = async (req, res) => {
-  console.log("remove task", req.body);
+  console.log("remove task", req.body.userId);
+  const { id } = req.params;
+  const userId = req.body.userId;
+
+  console.log("id", id, "userId", userId);
+
+  try {
+    // Find the post by id
+    const post = await prisma.post.findUnique({
+      where: { id },
+    });
+
+    // Check if post exists and if the user is the author
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    if (post.authorId !== userId) {
+      return res
+        .status(403)
+        .json({ message: "You are not authorized to delete this post" });
+    }
+
+    // Delete the post
+    await prisma.post.delete({
+      where: {
+        id,
+      },
+    });
+
+    res.status(200).json({ message: "Post deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    res
+      .status(500)
+      .json({ message: "Something went wrong", error: error.message });
+  }
 };

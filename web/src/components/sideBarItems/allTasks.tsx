@@ -4,24 +4,29 @@ import apiRequest from "../../lib/apiRequest";
 import { BsPlusCircle } from "react-icons/bs";
 import AddTask from "../addTask";
 
-export default function AllTasks() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+interface TaskProps {
+  id: string;
+  title: string;
+  content: string;
+  date: string;
+  complete: boolean;
+  important: boolean;
+  token: string;
+  userId: string;
+}
 
-  const [tasks, setTasks] = useState({
-    tasks: [
-      {
-        id: "",
-        title: "",
-        content: "",
-        date: "",
-        complete: false,
-        important: false,
-      },
-    ],
-  });
+export default function AllTasks({
+  token,
+  userId,
+}: {
+  token: string;
+  userId: string;
+}) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [updateTasks, setUpdateTasks] = useState(false);
+  const [tasks, setTasks] = useState({ tasks: [] as TaskProps[] });
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const fetchTasks = async () => {
       const response = await apiRequest.get("/task/display/allTaks", {
         headers: {
@@ -31,10 +36,11 @@ export default function AllTasks() {
       });
 
       setTasks(response.data);
+      setUpdateTasks(false);
     };
 
     fetchTasks();
-  }, [isModalOpen]);
+  }, [isModalOpen, updateTasks, token]);
 
   function openModal() {
     setIsModalOpen(true);
@@ -64,6 +70,8 @@ export default function AllTasks() {
             date={task.date}
             complete={task.complete}
             important={task.important}
+            setUpdateTasks={setUpdateTasks}
+            userId={userId}
           />
         ))}
 
@@ -81,7 +89,11 @@ export default function AllTasks() {
         </div>
       </div>
 
-      <div>{isModalOpen && <AddTask setIsModalOpen={setIsModalOpen} />}</div>
+      <div>
+        {isModalOpen && (
+          <AddTask setIsModalOpen={setIsModalOpen} userId={userId} />
+        )}
+      </div>
     </div>
   );
 }

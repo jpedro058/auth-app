@@ -1,13 +1,16 @@
 import { Edit3, Trash2 } from "lucide-react";
 import { PiStarThin } from "react-icons/pi";
+import apiRequest from "../lib/apiRequest";
 
 interface TaskProps {
   id: string;
   title: string;
-  content: string; // Adjusted property name from description
+  content: string;
   date: string;
-  complete: boolean; // Adjusted property name from completed
+  complete: boolean;
   important: boolean;
+  setUpdateTasks: React.Dispatch<React.SetStateAction<boolean>>;
+  userId: string;
 }
 
 export default function Task({
@@ -17,7 +20,29 @@ export default function Task({
   date,
   complete,
   important,
+  setUpdateTasks,
+  userId,
 }: TaskProps) {
+  const token = localStorage.getItem("token");
+  async function handleDelete() {
+    try {
+      await apiRequest.delete(`/task/remove/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token && token.replace(/"/g, "")}`,
+        },
+
+        data: {
+          userId,
+        },
+      });
+
+      setUpdateTasks(true);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div
       key={id}
@@ -57,6 +82,7 @@ export default function Task({
               <Trash2
                 size={24}
                 className="text-zinc-300 hover:text-zinc-100 transition-colors duration-300 ease-out"
+                onClick={handleDelete}
               />
             </button>
           </div>
