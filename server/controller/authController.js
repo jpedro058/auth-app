@@ -1,17 +1,33 @@
 import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
-import jwp from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
 export const register = async (req, res) => {
-  console.log("register request", req.body);
   const { username, email, password } = req.body;
-
-  console.log("register request");
 
   try {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please fill in all fields" });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          {
+            username,
+          },
+          {
+            email,
+          },
+        ],
+      },
+    });
+
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "Email or Username already in use" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -21,11 +37,13 @@ export const register = async (req, res) => {
         username,
         email,
         password: hashedPassword,
+        googleId: null,
       },
     });
 
     res.status(201).json({ user, message: "User created successfully" });
   } catch (error) {
+    console.log("error", error);
     res.status(500).json({ error: error, message: "Something went wrong" });
   }
 };
@@ -65,7 +83,7 @@ export const login = async (req, res) => {
 
     const expiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-    const token = jwp.sign({ id: user.id }, process.env.JWT_SECRET_KEY, {
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY, {
       expiresIn,
     });
 
@@ -77,7 +95,7 @@ export const login = async (req, res) => {
         maxAge: expiresIn,
       })
       .status(200)
-      .json({ user: rest });
+      .json({ user: rest, token });
   } catch (error) {
     res
       .status(500)
@@ -113,7 +131,6 @@ export const googleLogin = async (req, res) => {
         where: { email },
       });
     } catch (error) {
-      console.log("DATA BASE URL", process.env.DATABASE_URL);
       console.log("error", error);
     }
 
@@ -153,7 +170,7 @@ export const googleLogin = async (req, res) => {
 
     const expiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-    const token = jwp.sign({ id: user.id }, process.env.JWT_SECRET_KEY, {
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET_KEY, {
       expiresIn,
     });
 
@@ -165,7 +182,7 @@ export const googleLogin = async (req, res) => {
         maxAge: expiresIn,
       })
       .status(200)
-      .json({ user: rest });
+      .json({ user: rest, token });
   } catch (error) {
     res
       .status(500)

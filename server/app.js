@@ -1,6 +1,7 @@
 import express from "express";
 import authRoute from "./routes/auth.js";
 import userRoute from "./routes/user.js";
+import taskRoute from "./routes/task.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
@@ -27,6 +28,7 @@ app.use(cookieParser());
 
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
+app.use("/api/task", taskRoute);
 
 app.listen(8800, () => {
   console.log("Server is running on port 8800");

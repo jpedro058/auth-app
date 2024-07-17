@@ -9,7 +9,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { updateUser } = useContext(AuthContext);
+  const { updateUser, updateToken } = useContext(AuthContext);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,6 +31,7 @@ export default function SignUp() {
       });
 
       updateUser(response.data.user);
+      updateToken(response.data.token);
 
       navigate("/home");
     } catch (err) {
@@ -61,8 +62,6 @@ export default function SignUp() {
   const handleGoogleLoginSuccess = async (responseCred: CredentialResponse) => {
     try {
       const { credential } = responseCred; // Assuming response contains the credential
-
-      console.log("CREDENTIAL", credential);
 
       const response = await apiRequest.post("/auth/google-login", {
         credential, // Sending credential to the backend

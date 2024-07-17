@@ -9,7 +9,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { updateUser } = useContext(AuthContext);
+  const { updateUser, updateToken } = useContext(AuthContext);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,13 +31,13 @@ export default function Login() {
       });
 
       updateUser(response.data.user);
+      updateToken(response.data.token);
 
       navigate("/home");
     } catch (err) {
       console.error(err);
 
       if (err instanceof Error) {
-        // Handle generic error (e.g., network issues)
         setError(err.message);
       } else if (
         err &&
@@ -45,13 +45,19 @@ export default function Login() {
         "response" in err &&
         err.response
       ) {
-        // Handle API response error
         setError(
           (err as { response: { data: { message: string } } }).response.data
             .message
         );
       } else {
         setError("An unknown error occurred.");
+      }
+
+      //filter the error message by his status code
+      if ((err as { response: { status: number } }).response?.status === 400) {
+        setError("Invalid credentials");
+      } else {
+        setError("Internal Error");
       }
     } finally {
       setIsLoading(false);
@@ -60,37 +66,41 @@ export default function Login() {
 
   const handleGoogleLoginSuccess = async (responseCred: CredentialResponse) => {
     try {
-      const { credential } = responseCred; // Assuming response contains the credential
-
-      console.log("CREDENTIAL", credential);
+      const { credential } = responseCred;
 
       const response = await apiRequest.post("/auth/google-login", {
         credential, // Sending credential to the backend
       });
 
-      const { user } = response.data;
+      updateUser(response.data.user);
+      updateToken(response.data.token);
 
-      updateUser(user);
-
-      navigate("/home"); // Navigate to home page after successful login
+      navigate("/home");
     } catch (err) {
       console.error(err);
 
       let errorMessage = "An unknown error occurred.";
 
       if (err instanceof Error) {
-        errorMessage = err.message; // Handle generic error (e.g., network issues)
+        errorMessage = err.message;
       } else if (
         (err as { response: { data: { message: string } } }).response?.data
           ?.message
       ) {
         errorMessage = (err as { response: { data: { message: string } } })
-          .response.data.message; // Handle API response error
+          .response.data.message;
       }
 
-      setError(errorMessage);
+      console.error(errorMessage, err);
+
+      //filter the error message by his status code
+      if ((err as { response: { status: number } }).response?.status === 401) {
+        setError("Invalid credentials");
+      } else {
+        setError("Internal Error");
+      }
     } finally {
-      setIsLoading(false); // Set loading state to false
+      setIsLoading(false);
     }
   };
 
@@ -127,11 +137,16 @@ export default function Login() {
           />
         </div>
 
-        {error && <p className="text-red-500 text-center text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-center text-sm pt-4">{error}</p>
+        )}
 
-        <div className="space-y-4 flex flex-col justify-center items-center ">
+        <div className="space-y-4 flex flex-col justify-center items-center pt-4">
           <p className="text-zinc-300">
-            <a href="#" className="text-zinc-300 hover:text-slate-200">
+            <a
+              href="#"
+              className="text-zinc-300 hover:text-slate-200 underline"
+            >
               Forgot Password?
             </a>
           </p>

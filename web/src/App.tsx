@@ -23,7 +23,7 @@ function App() {
       path: "/home",
       element: (
         <RequireAuth>
-          <Home />
+          <Home contentType="allTasks" />
         </RequireAuth>
       ),
     },

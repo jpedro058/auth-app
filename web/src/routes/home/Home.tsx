@@ -1,50 +1,38 @@
-import { useContext } from "react";
-import { CgProfile } from "react-icons/cg";
-import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext";
-import apiRequest from "../../lib/apiRequest";
+import { useState } from "react";
+import SideBar from "../../components/sideBar";
+import AllTasks from "../../components/sideBarItems/allTasks";
+import CompletedTasks from "../../components/sideBarItems/completedTasks";
+import DoItNow from "../../components/sideBarItems/doItNow";
+import ImportantTasks from "../../components/sideBarItems/importantTasks";
 
-export default function Home() {
-  const navigate = useNavigate();
+interface HomeProps {
+  contentType: string;
+}
 
-  const { updateUser, currentUser } = useContext(AuthContext);
+export default function Home({ contentType }: HomeProps) {
+  const [currentContentType, setCurrentContentType] = useState(contentType);
 
-  const handleLogout = async () => {
-    try {
-      await apiRequest.post("/auth/logout");
-
-      updateUser(null);
-
-      navigate("/auth");
-    } catch (err) {
-      console.log(err);
-    }
+  const changeContentType = (type: string) => {
+    setCurrentContentType(type);
   };
 
-  console.log(currentUser);
-
   return (
-    <div className="flex items-center min-h-screen bg-[#001b2e] p-[5rem]">
-      <div className="h-[calc(100vh-10rem)] flex flex-col items-center justify-between bg-slate-800 w-60 rounded-3xl p-8">
-        <div className="flex flex-col justify-center items-center gap-8">
-          <h1 className="text-2xl text-zinc-300 font-bold text-center">
-            Welcome!
-          </h1>
+    <div className="flex items-center min-h-screen bg-[#001b2e] p-[2.5rem] gap-8">
+      <SideBar
+        contentType={currentContentType}
+        changeContentType={changeContentType}
+      />
 
-          <div className="flex items-center justify-center gap-2">
-            <CgProfile className="text-zinc-300 text-4xl" />
-
-            <span className="text-zinc-300 font-bold text-lg">
-              {(currentUser as { username: string }).username}
-            </span>
-          </div>
-        </div>
-        <button
-          className="bg-zinc-300 text-slate-800 rounded-lg p-2 font-bold"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
+      <div className="w-[85%] h-[calc(100vh-5rem)] flex flex-col items-center justify-between bg-[#1d3f58] border-2 border-[#2d5574] shadow-[0px_0px_10px_0px_#2d3748] rounded-3xl p-8">
+        {currentContentType === "completedTasks" ? (
+          <CompletedTasks />
+        ) : currentContentType === "importantTasks" ? (
+          <ImportantTasks />
+        ) : currentContentType === "doItNow" ? (
+          <DoItNow />
+        ) : (
+          <AllTasks />
+        )}
       </div>
     </div>
   );
