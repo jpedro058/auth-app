@@ -1,6 +1,8 @@
 import { Edit3, Trash2 } from "lucide-react";
 import { PiStarThin } from "react-icons/pi";
 import apiRequest from "../lib/apiRequest";
+import { useState } from "react";
+import EditTask from "./editTask";
 
 interface TaskProps {
   id: string;
@@ -11,6 +13,7 @@ interface TaskProps {
   important: boolean;
   setUpdateTasks: React.Dispatch<React.SetStateAction<boolean>>;
   userId: string;
+  token: string;
 }
 
 export default function Task({
@@ -22,9 +25,11 @@ export default function Task({
   important,
   setUpdateTasks,
   userId,
+  token,
 }: TaskProps) {
-  const token = localStorage.getItem("token");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   async function handleDelete() {
+    console.log("Delete Task", token, userId);
     try {
       await apiRequest.delete(`/task/remove/${id}`, {
         headers: {
@@ -40,6 +45,38 @@ export default function Task({
       setUpdateTasks(true);
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  function openModal() {
+    setIsModalOpen(true);
+  }
+
+  async function handleCompleted() {
+    complete = !complete;
+
+    try {
+      await apiRequest.put(
+        `/task/edit/${id}`,
+        {
+          userId,
+          title,
+          content,
+          date,
+          complete,
+          important,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token && token.replace(/"/g, "")}`,
+          },
+        }
+      );
+
+      setUpdateTasks(true);
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -66,7 +103,10 @@ export default function Task({
           {date?.slice(0, 10)}
         </span>
         <div className="flex items-center justify-between">
-          <button className="bg-zinc-300 text-slate-800 rounded-full px-4 py-1.5 font-bold border border-zinc-300 hover:bg-zinc-400/10 hover:text-zinc-300 transition-colors duration-300 ease-in-out">
+          <button
+            onClick={handleCompleted}
+            className="bg-zinc-300 text-slate-800 rounded-full px-4 py-1.5 font-bold border border-zinc-300 hover:bg-zinc-400/10 hover:text-zinc-300 transition-colors duration-300 ease-in-out"
+          >
             {complete ? "Completed" : "Incomplete"}
           </button>
 
@@ -75,6 +115,7 @@ export default function Task({
               <Edit3
                 size={24}
                 className="text-zinc-300 hover:text-zinc-100 transition-colors duration-300 ease-out"
+                onClick={openModal}
               />
             </button>
 
@@ -88,6 +129,21 @@ export default function Task({
           </div>
         </div>
       </div>
+
+      {isModalOpen && (
+        <EditTask
+          setIsModalOpen={setIsModalOpen}
+          userId={userId}
+          id={id}
+          title={title}
+          content={content}
+          date={date}
+          complete={complete}
+          important={important}
+          setUpdateTasks={setUpdateTasks}
+          token={token}
+        />
+      )}
     </div>
   );
 }

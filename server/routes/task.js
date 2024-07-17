@@ -13,7 +13,7 @@ router.post("/register", register);
 
 router.get("/display/:type", authenticateToken, display);
 
-router.put("/edit/:id", edit);
+router.put("/edit/:id", authenticateToken, edit);
 
 router.delete("/remove/:id", authenticateToken, remove);
 

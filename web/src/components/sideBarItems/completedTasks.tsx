@@ -73,6 +73,7 @@ export default function CompletedTasks({
             important={task.important}
             setUpdateTasks={setUpdateTasks}
             userId={userId}
+            token={token}
           />
         ))}
 

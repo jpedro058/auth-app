@@ -73,6 +73,7 @@ export default function DoItNow({
             important={task.important}
             setUpdateTasks={setUpdateTasks}
             userId={userId}
+            token={token}
           />
         ))}
 

@@ -97,7 +97,41 @@ export const display = async (req, res) => {
 };
 
 export const edit = async (req, res) => {
-  console.log("edit task", req.body);
+  const { id } = req.params;
+  const { title, content, date, complete, important } = req.body;
+
+  console.log("id", id, "title", title, "content", content, "date", date);
+
+  try {
+    // Find the post by id
+    const post = await prisma.post.findUnique({
+      where: { id },
+    });
+
+    // Check if post exists
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Update the post
+    const updatedPost = await prisma.post.update({
+      where: {
+        id,
+      },
+      data: {
+        title,
+        content,
+        date,
+        complete,
+        important,
+      },
+    });
+
+    res.status(200).json({ post: updatedPost, message: "Post updated" });
+  } catch (error) {
+    console.error("Error updating post:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
 };
 
 export const remove = async (req, res) => {

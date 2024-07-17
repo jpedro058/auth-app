@@ -73,6 +73,7 @@ export default function ImportantTasks({
             important={task.important}
             setUpdateTasks={setUpdateTasks}
             userId={userId}
+            token={token}
           />
         ))}
 
